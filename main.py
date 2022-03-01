@@ -10,12 +10,12 @@ from aiortc import RTCSessionDescription
 from aiortc.contrib.media import MediaPlayer
 from aiortc.contrib.media import MediaRelay
 
-from .console import parse_args
-from .console import print_qr
-from .local_net import get_local_ip
-from .web_responses import index
-from .web_responses import javascript
-from .web_responses import style
+from console import parse_args
+from console import print_qr
+from local_net import get_local_ip
+from web_responses import index
+from web_responses import javascript
+from web_responses import style
 
 relay = None
 webcam = None
@@ -23,7 +23,6 @@ pcs = set()
 
 
 def create_webcam_track():
-    global relay, webcam
     options = {"framerate": "25", "video_size": "640x480"}
     if platform.system() == "Darwin":
         webcam = MediaPlayer("default:none", format="avfoundation", options=options)
@@ -35,7 +34,6 @@ def create_webcam_track():
 
 
 def create_local_tracks():
-    global relay, webcam
     relay = MediaRelay()
     webcam = create_webcam_track()
     return None, relay.subscribe(webcam.video)
@@ -81,24 +79,37 @@ async def on_shutdown(app):
     pcs.clear()
 
 
-def main():
-    args = parse_args()
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    url = ""
-    if args.cert_file:
-        ssl_context = ssl.SSLContext()
-        ssl_context.load_cert_chain(args.cert_file, args.key_file)
+def print_connection_information(ssl_context, args):
+    url = "http://"
+    if ssl_context:
         url = "https://"
-    else:
-        ssl_context = None
-        url = "http://"
     url = url + str(get_local_ip())
     url = url + ":" + str(args.port) + "/"
     print(url)
     print_qr(url)
+
+
+def get_ssl_context(args):
+    if args.cert_file:
+        ssl_context = ssl.SSLContext()
+        ssl_context.load_cert_chain(args.cert_file, args.key_file)
+    else:
+        ssl_context = None
+    return ssl_context
+
+
+def set_logging_level(args):
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+
+def main():
+    args = parse_args()
+    set_logging_level(args)
+    ssl_context = get_ssl_context(args)
+    print_connection_information(ssl_context, args)
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
     app.router.add_get("/", index)
