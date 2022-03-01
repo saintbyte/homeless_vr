@@ -2,6 +2,8 @@ import argparse
 
 import qrcode
 
+from local_net import get_local_ip
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Monitor to VR")
@@ -28,3 +30,13 @@ def print_qr(url):
     qr.add_data(url)
     qr.make(fit=True)
     qr.print_ascii()
+
+
+def print_connection_information(ssl_context, args):
+    url = "http://"
+    if ssl_context:
+        url = "https://"
+    url = url + str(get_local_ip())
+    url = url + f":{args.port}/"
+    print(url)
+    print_qr(url)

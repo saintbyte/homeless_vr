@@ -11,8 +11,7 @@ from aiortc.contrib.media import MediaPlayer
 from aiortc.contrib.media import MediaRelay
 
 from console import parse_args
-from console import print_qr
-from local_net import get_local_ip
+from console import print_connection_information
 from web_responses import index
 from web_responses import javascript
 from web_responses import style
@@ -77,16 +76,6 @@ async def on_shutdown(app):
     coros = [pc.close() for pc in pcs]
     await asyncio.gather(*coros)
     pcs.clear()
-
-
-def print_connection_information(ssl_context, args):
-    url = "http://"
-    if ssl_context:
-        url = "https://"
-    url = url + str(get_local_ip())
-    url = url + ":" + str(args.port) + "/"
-    print(url)
-    print_qr(url)
 
 
 def get_ssl_context(args):
