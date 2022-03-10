@@ -5,6 +5,7 @@ import platform
 import ssl
 
 from aiohttp import web
+from aiortc import RTCConfiguration
 from aiortc import RTCPeerConnection
 from aiortc import RTCSessionDescription
 from aiortc.contrib.media import MediaPlayer
@@ -29,6 +30,7 @@ def create_webcam_track():
         webcam = MediaPlayer("video=Integrated Camera", format="dshow", options=options)
     else:
         webcam = MediaPlayer("/dev/video2", format="v4l2", options=options)
+
     return webcam
 
 
@@ -42,7 +44,7 @@ async def offer(request):
     params = await request.json()
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
-    pc = RTCPeerConnection()
+    pc = RTCPeerConnection(configuration=RTCConfiguration(iceServers=[]))
     pcs.add(pc)
 
     @pc.on("connectionstatechange")
@@ -101,10 +103,11 @@ def main():
     print_connection_information(ssl_context, args)
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
-    app.router.add_get("/", index)
+
     app.router.add_get("/client.js", javascript)
     app.router.add_get("/style.css", style)
     app.router.add_post("/offer", offer)
+    app.router.add_get("/", index)
     web.run_app(app, host=args.host, port=args.port, ssl_context=ssl_context)
 
 
