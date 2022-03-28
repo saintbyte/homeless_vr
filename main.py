@@ -11,8 +11,10 @@ from aiortc import RTCSessionDescription
 from aiortc.contrib.media import MediaPlayer
 from aiortc.contrib.media import MediaRelay
 
+from console import channel_log
 from console import parse_args
 from console import print_connection_information
+from constants import DATA_CHANNEL_NAME
 from web_responses import index
 from web_responses import javascript
 from web_responses import style
@@ -62,7 +64,20 @@ async def offer(request):
             pc.addTrack(audio)
         elif t.kind == "video" and video:
             pc.addTrack(video)
+    # ---------
+    channel = pc.createDataChannel(DATA_CHANNEL_NAME)
+    channel_log(channel, "-", "created by local party")
 
+    @channel.on("open")
+    def on_open():
+        channel_log(channel, "-", "OPEN CHANNEL")
+        # asyncio.ensure_future(send_pings())
+
+    @channel.on("message")
+    def on_message(message):
+        channel_log(channel, "<", message)
+
+    # ---------
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
 

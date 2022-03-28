@@ -1,4 +1,5 @@
 var pc = null;
+var dataChannel = null;
 
 function negotiate() {
     pc.addTransceiver('video', {direction: 'recvonly'});
@@ -36,13 +37,47 @@ function negotiate() {
         return response.json();
     }).then(function(answer) {
         return pc.setRemoteDescription(answer);
+    }).then(function() {
+        console.log("create data channel")
+        dataChannel = pc.createDataChannel("chat", {
+            negotiated: false
+        });
+        dataChannel.addEventListener("open", function(event) {
+            console.log("create data channel open")
+            beginTransmission(dataChannel);
+            start_motion_track()
+        });
+        dataChannel.addEventListener('close', function(event) {
+            console.log("create data channel close")
+            messageBox.disabled = false;
+            sendButton.disabled = false;
+        });
     }).catch(function(e) {
         alert(e);
     });
 }
+function start_motion_track()
+{
+    //if (window.DeviceOrientationEvent) {
+        window.addEventListener("deviceorientation", function(event) {
+            // alpha: rotation around z-axis
+            var rotateDegrees = event.alpha;
+            // gamma: left to right
+            var leftToRight = event.gamma;
+            // beta: front back motion
+            var frontToBack = event.beta;
+
+            handleOrientationEvent(frontToBack, leftToRight, rotateDegrees);
+        }, true);
+    //}
+
+    var handleOrientationEvent = function(frontToBack, leftToRight, rotateDegrees) {
+        console.log("frontToBack:"+frontToBack+" leftToRight:"+leftToRight+" rotateDegrees:"+rotateDegrees)
+    };
+}
 function go_fullscreen()
 {
-    document.body.requestFullscreen();
+    //document.body.requestFullscreen();
 }
 function start() {
     var config = {
@@ -72,8 +107,6 @@ function start() {
 
 function stop() {
     document.getElementById('stop').style.display = 'none';
-
-    // close peer connection
     setTimeout(function() {
         pc.close();
     }, 500);

@@ -40,3 +40,7 @@ def print_connection_information(ssl_context, args):
     url = url + f":{args.port}/"
     print(url)
     print_qr(url)
+
+
+def channel_log(channel, t, message):
+    print("channel(%s) %s %s" % (channel.label, t, message))

@@ -46,3 +46,7 @@ ffmpeg -f x11grab -r 15 -s 1366x768 -i :0.0+0,0 -vcodec rawvideo -pix_fmt yuvj42
 ```
 sudo ffmpeg -f x11grab -r 30 -s 1365x766 -i :0.0 -vcodec rawvideo -fflags nobuffer,low_delay -framedrop -strict experimental -avioflags direct  -pix_fmt yuv420p -threads 0 -f v4l2 -vf 'scale=640x480' /dev/video2
 ```
+
+```
+sudo ffmpeg -f x11grab -r 30 -s 1365x766 -i :0.0 -vcodec rawvideo  -strict experimental -avioflags direct  -pix_fmt yuv420p -threads 0 -f v4l2 -vf 'scale=640x480' /dev/video2
+```
