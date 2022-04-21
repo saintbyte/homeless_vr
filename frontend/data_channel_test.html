@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0">
+    <title>WebRTC webcam</title>
+    <link href="style.css" type="text/css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="option content" id="start_button">
+        <input id="use-stun" type="checkbox" />
+        <button id="start" onclick="start()">Start</button>
+    </div>
+    <script>
+        var pc;
+
+        function start() {
+            console.log("Start");
+            var config = {
+                sdpSemantics: 'unified-plan'
+            };
+
+            if (document.getElementById('use-stun').checked) {
+                config.iceServers = [{
+                    urls: []
+                }];
+            }
+            pc = new RTCPeerConnection(config);
+            let dataChannel = pc.createDataChannel("Channel");
+
+            dataChannel.addEventListener("open", (event) => {
+                console.log("dataChannel open ");
+                beginTransmission(dataChannel);
+            });
+            dataChannel.addEventListener("close", (event) => {
+                console.log("dataChannel close ");
+
+            });
+        }
+    </script>
+</body>
+
+</html>

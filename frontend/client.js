@@ -2,8 +2,22 @@ var pc = null;
 var dataChannel = null;
 
 function negotiate() {
-    pc.addTransceiver('video', {direction: 'recvonly'});
-    pc.addTransceiver('audio', {direction: 'recvonly'});
+    pc.addTransceiver('video', { direction: 'recvonly' });
+    pc.addTransceiver('audio', { direction: 'recvonly' });
+    //----------------------
+    dataChannel = pc.createDataChannel("chat", {});
+    console.log("create data channel")
+
+    dataChannel.addEventListener("open", function(event) {
+        console.log("create data channel open")
+        start_motion_track()
+    });
+    dataChannel.addEventListener('close', function(event) {
+        console.log("create data channel close")
+        messageBox.disabled = false;
+        sendButton.disabled = false;
+    });
+    //----------------------
     return pc.createOffer().then(function(offer) {
         return pc.setLocalDescription(offer);
     }).then(function() {
@@ -38,54 +52,46 @@ function negotiate() {
     }).then(function(answer) {
         return pc.setRemoteDescription(answer);
     }).then(function() {
-        console.log("create data channel")
-        dataChannel = pc.createDataChannel("chat", {
-            negotiated: false
-        });
-        dataChannel.addEventListener("open", function(event) {
-            console.log("create data channel open")
-            beginTransmission(dataChannel);
-            start_motion_track()
-        });
-        dataChannel.addEventListener('close', function(event) {
-            console.log("create data channel close")
-            messageBox.disabled = false;
-            sendButton.disabled = false;
-        });
+
     }).catch(function(e) {
         alert(e);
     });
 }
-function start_motion_track()
-{
-    //if (window.DeviceOrientationEvent) {
-        window.addEventListener("deviceorientation", function(event) {
-            // alpha: rotation around z-axis
-            var rotateDegrees = event.alpha;
-            // gamma: left to right
-            var leftToRight = event.gamma;
-            // beta: front back motion
-            var frontToBack = event.beta;
 
-            handleOrientationEvent(frontToBack, leftToRight, rotateDegrees);
-        }, true);
+function start_motion_track() {
+    //if (window.DeviceOrientationEvent) {
+    window.addEventListener("deviceorientation", function(event) {
+        // alpha: rotation around z-axis
+        var rotateDegrees = event.alpha;
+        // gamma: left to right
+        var leftToRight = event.gamma;
+        // beta: front back motion
+        var frontToBack = event.beta;
+
+        handleOrientationEvent(frontToBack, leftToRight, rotateDegrees);
+    }, true);
     //}
 
     var handleOrientationEvent = function(frontToBack, leftToRight, rotateDegrees) {
-        console.log("frontToBack:"+frontToBack+" leftToRight:"+leftToRight+" rotateDegrees:"+rotateDegrees)
+        var message = "frontToBack:" + frontToBack + ";leftToRight:" + leftToRight + ";rotateDegrees:" + rotateDegrees
+        console.log(message);
+        dataChannel.send(message)
     };
+
+
 }
-function go_fullscreen()
-{
+
+function go_fullscreen() {
     //document.body.requestFullscreen();
 }
+
 function start() {
     var config = {
         sdpSemantics: 'unified-plan'
     };
 
     if (document.getElementById('use-stun').checked) {
-        config.iceServers = [{urls: []}]; //'stun:stun.l.google.com:19302'
+        config.iceServers = [{ urls: [] }]; //'stun:stun.l.google.com:19302'
     }
     go_fullscreen()
     pc = new RTCPeerConnection(config);
